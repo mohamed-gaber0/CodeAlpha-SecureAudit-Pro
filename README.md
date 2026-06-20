@@ -11,7 +11,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](#)
 [![CodeAlpha](https://img.shields.io/badge/CodeAlpha-Internship-7c3aed?style=flat-square)](#)
 
-**[🔗 Live Demo](https://mohamed-gaber0.github.io/CodeAlpha-SecureAudit-Pro/)** •**[🎥 Video Walkthrough](https://drive.google.com/file/d/1iEsInAPiQqQrKXrI-FpvXkTq8ICesQZm/view?usp=sharing)** •**[📄 Sample Audit Report](Security Audit Report — StudentPortal v1.2.0.pdf)**
+**[🔗 Live Demo](https://mohamed-gaber0.github.io/CodeAlpha-SecureAudit-Pro/)** •**[🎥 Video Walkthrough](https://drive.google.com/file/d/1iEsInAPiQqQrKXrI-FpvXkTq8ICesQZm/view?usp=sharing)** •**[📄 Sample Audit Report](https://github.com/mohamed-gaber0/CodeAlpha-SecureAudit-Pro/blob/add65aae8aa52463cca3b1cecf48804d953dd00a/Security%20Audit%20Report%20%E2%80%94%20StudentPortal%20v1.2.0.pdf))**
 
 </div>
 
