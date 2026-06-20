@@ -21,8 +21,7 @@ reports — entirely client-side.
 - 100% client-side — no code is ever transmitted
 
 ## Demo
-🔗 Live demo: <GitHub Pages link>
-🎥 Video walkthrough: <link>
+🎥 Video walkthrough: <https://drive.google.com/file/d/1iEsInAPiQqQrKXrI-FpvXkTq8ICesQZm/view?usp=sharing>
 
 ## Tech Stack
 HTML5, CSS3, Vanilla JavaScript, CodeMirror 5
