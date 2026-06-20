@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureAudit Pro – Static Code Security Analyzer</title>
+  <meta name="description" content="Professional static code security analyzer for Python, JavaScript, Java, C/C++, PHP, and Go. Detect vulnerabilities mapped to CWE and OWASP Top 10, with remediation guidance and exportable reports.">
+  <meta name="keywords" content="secure code review, static analysis, vulnerability scanner, OWASP, CWE, security audit">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CodeMirror 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+
+  <!-- Main Styles -->
+  <link rel="stylesheet" href="secure-review.css">
+  <!-- Cyber HUD Overlay Theme -->
+  <link rel="stylesheet" href="cyber-hud.css">
+</head>
+<body class="dark-mode">
+
+  <!-- ═══════════════════ MATRIX CANVAS BACKGROUND ═══════════════════ -->
+  <canvas id="matrix-canvas"></canvas>
+
+  <!-- ═══════════════════ BOOT SEQUENCE OVERLAY ═══════════════════ -->
+  <div id="boot-overlay">
+    <div class="boot-logo-ring">
+      <svg class="boot-ring-svg" viewBox="0 0 130 130" fill="none">
+        <circle cx="65" cy="65" r="60" stroke="rgba(0,212,255,0.25)" stroke-width="1" stroke-dasharray="8 4"/>
+        <circle cx="65" cy="65" r="48" stroke="rgba(0,212,255,0.15)" stroke-width="0.5" stroke-dasharray="4 8"/>
+        <circle cx="5" cy="65" r="3" fill="#00d4ff" opacity="0.9"/>
+        <circle cx="125" cy="65" r="2" fill="#7c3aed" opacity="0.8"/>
+      </svg>
+      <svg class="boot-ring-svg2" viewBox="0 0 130 130" fill="none">
+        <circle cx="65" cy="65" r="54" stroke="rgba(124,58,237,0.2)" stroke-width="1" stroke-dasharray="2 6"/>
+      </svg>
+      <img src="assets/logo.png" alt="SecureAudit Pro">
+    </div>
+    <div id="boot-terminal"></div>
+    <div class="boot-progress-bar">
+      <div class="boot-progress-fill" id="boot-progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════ HEADER ═══════════════════════════════════ -->
+  <header class="header" id="appHeader">
+    <div class="header-inner">
+      <div class="logo">
+        <img src="assets/logo.png" alt="SecureAudit Pro Logo" class="logo-img">
+        <div class="logo-text">
+          <span class="logo-name">SecureAudit <span class="logo-pro">Pro</span></span>
+          <span class="logo-tagline">Static Code Security Analyzer</span>
+        </div>
+      </div>
+
+      <nav class="nav" role="navigation" aria-label="Main navigation">
+        <button class="nav-btn active" data-tab="analyzer" id="navAnalyzer">Analyzer</button>
+        <button class="nav-btn" data-tab="best-practices" id="navBestPractices">Best Practices</button>
+        <button class="nav-btn" data-tab="owasp" id="navOwasp">OWASP Top 10</button>
+        <button class="nav-btn nav-btn-dep" data-tab="dependencies" id="navDependencies">
+          <span class="nav-dep-dot"></span>Dependencies CVE
+        </button>
+        <button class="nav-btn" data-tab="about" id="navAbout">About</button>
+      </nav>
+
+      <div class="header-actions">
+        <div class="header-badge">
+          <span class="badge-dot"></span>
+          <span class="badge-text">Engine v2.4</span>
+        </div>
+        <button class="btn-theme" id="themeToggle" aria-label="Toggle theme" title="Toggle dark/light mode">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════ MAIN ═══════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- ─────────────── TAB: ANALYZER ─────────────── -->
+    <div class="tab-pane active" id="tab-analyzer" role="tabpanel">
+      <div class="analyzer-layout">
+
+        <!-- LEFT: Code Input Panel -->
+        <section class="panel code-panel" aria-label="Code input">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg class="panel-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              Code Input
+            </div>
+            <div class="panel-controls">
+              <select id="languageSelect" class="lang-select" aria-label="Select programming language">
+                <option value="python">🐍 Python</option>
+                <option value="javascript">🟨 JavaScript</option>
+                <option value="java">☕ Java</option>
+                <option value="c">⚙️ C / C++</option>
+                <option value="php">🐘 PHP</option>
+                <option value="go">🔵 Go</option>
+              </select>
+              <button class="btn-secondary" id="loadSampleBtn" title="Load vulnerable sample code">Load Sample</button>
+              <button class="btn-ghost" id="clearCodeBtn" title="Clear editor">Clear</button>
+            </div>
+          </div>
+
+          <div class="editor-wrapper" id="editorWrapper">
+            <textarea id="codeEditor" placeholder="// Paste your source code here and click 'Run Security Scan'..."></textarea>
+          </div>
+
+          <div class="editor-footer">
+            <div class="editor-stats">
+              <span id="lineCount" class="stat-chip">0 lines</span>
+              <span id="charCount" class="stat-chip">0 chars</span>
+              <span id="langIndicator" class="stat-chip lang-chip">Python</span>
+              <button class="btn-heatmap" id="heatmapToggle" disabled title="Show vulnerability heatmap on code lines">
+                🔥 Heatmap
+              </button>
+            </div>
+            <button class="btn-primary btn-scan" id="scanBtn" aria-label="Run security scan">
+              <svg class="scan-btn-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 9a2 2 0 114 0 2 2 0 01-4 0z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a4 4 0 00-3.446 6.032l-2.261 2.26a1 1 0 101.414 1.415l2.261-2.261A4 4 0 1011 5z" clip-rule="evenodd"/></svg>
+              Run Security Scan
+            </button>
+          </div>
+        </section>
+
+        <!-- RIGHT: Results Panel -->
+        <section class="panel results-panel" aria-label="Analysis results">
+
+          <!-- Security Score Gauge -->
+          <div class="score-card" id="scoreCard">
+            <div class="score-gauge-area">
+              <svg class="score-gauge" viewBox="0 0 220 130" aria-label="Security score gauge">
+                <!-- Track arc -->
+                <path class="gauge-track" d="M 25 110 A 90 90 0 0 1 195 110"/>
+                <!-- Colored fill arc -->
+                <path class="gauge-fill" id="gaugeFill" d="M 25 110 A 90 90 0 0 1 195 110"
+                      stroke-dasharray="282.74" stroke-dashoffset="282.74"/>
+                <!-- Score number -->
+                <text id="gaugeScoreText" class="gauge-score-text" x="110" y="100" text-anchor="middle">--</text>
+                <text class="gauge-sub-text" x="110" y="118" text-anchor="middle">Security Score</text>
+              </svg>
+              <div class="score-grade-wrap">
+                <span class="score-grade" id="scoreGrade">Awaiting Scan</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Severity Summary Grid -->
+          <div class="summary-grid" id="summaryGrid">
+            <div class="summary-card sev-critical" id="cardCritical">
+              <div class="summary-icon">🔴</div>
+              <div class="summary-num" id="countCritical">0</div>
+              <div class="summary-label">Critical</div>
+            </div>
+            <div class="summary-card sev-high" id="cardHigh">
+              <div class="summary-icon">🟠</div>
+              <div class="summary-num" id="countHigh">0</div>
+              <div class="summary-label">High</div>
+            </div>
+            <div class="summary-card sev-medium" id="cardMedium">
+              <div class="summary-icon">🟡</div>
+              <div class="summary-num" id="countMedium">0</div>
+              <div class="summary-label">Medium</div>
+            </div>
+            <div class="summary-card sev-low" id="cardLow">
+              <div class="summary-icon">🔵</div>
+              <div class="summary-num" id="countLow">0</div>
+              <div class="summary-label">Low</div>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="chart-card" id="chartCard">
+            <div class="chart-title">Vulnerability Distribution</div>
+            <div class="chart-wrap">
+              <canvas id="severityChart" aria-label="Severity distribution chart"></canvas>
+            </div>
+          </div>
+
+          <!-- Findings List Header -->
+          <div class="findings-header">
+            <span class="findings-title" id="findingsTitle">Findings</span>
+            <div class="findings-filters" role="group" aria-label="Filter by severity">
+              <button class="filter-btn active" data-filter="all" id="filterAll">All</button>
+              <button class="filter-btn" data-filter="critical" id="filterCritical">Critical</button>
+              <button class="filter-btn" data-filter="high" id="filterHigh">High</button>
+              <button class="filter-btn" data-filter="medium" id="filterMedium">Medium</button>
+              <button class="filter-btn" data-filter="low" id="filterLow">Low</button>
+            </div>
+          </div>
+
+          <!-- Findings List -->
+          <div class="findings-list" id="findingsList" aria-live="polite">
+            <div class="findings-placeholder" id="findingsPlaceholder">
+              <div class="placeholder-icon">🛡️</div>
+              <p class="placeholder-title">No scan results yet</p>
+              <p class="placeholder-sub">Paste code and click "Run Security Scan" to analyze vulnerabilities</p>
+            </div>
+          </div>
+
+          <!-- Export -->
+          <button class="btn-export" id="exportBtn" disabled aria-label="Export security report">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            Export Security Report (HTML)
+          </button>
+
+          <!-- Fix Code Button -->
+          <button class="btn-fix-code" id="fixBtn" disabled aria-label="Generate secure version of code">
+            <span class="fix-btn-icon">🤖</span>
+            Generate Secure Code
+            <span class="fix-badge" id="fixBadge"></span>
+          </button>
+        </section>
+      </div>
+    </div>
+
+    <!-- ─────────────── TAB: BEST PRACTICES ─────────────── -->
+    <div class="tab-pane" id="tab-best-practices" role="tabpanel">
+      <div class="content-page">
+        <div class="page-hero">
+          <h1 class="page-title">Secure Coding Best Practices</h1>
+          <p class="page-sub">A comprehensive guide to writing secure, resilient code across all languages and platforms.</p>
+        </div>
+        <div class="bp-grid" id="bpGrid"><!-- Populated by JS --></div>
+      </div>
+    </div>
+
+    <!-- ─────────────── TAB: OWASP TOP 10 ─────────────── -->
+    <div class="tab-pane" id="tab-owasp" role="tabpanel">
+      <div class="content-page">
+        <div class="page-hero">
+          <h1 class="page-title">OWASP Top 10 – 2021</h1>
+          <p class="page-sub">The globally recognized standard for the most critical web application security risks.</p>
+          <a href="https://owasp.org/Top10/" target="_blank" rel="noopener" class="btn-link">View Official OWASP Documentation ↗</a>
+        </div>
+        <div class="owasp-grid" id="owaspGrid"><!-- Populated by JS --></div>
+      </div>
+    </div>
+
+    <!-- ─────────────── TAB: ABOUT ─────────────── -->
+    <div class="tab-pane" id="tab-about" role="tabpanel">
+      <div class="content-page">
+        <div class="page-hero">
+          <h1 class="page-title">About SecureAudit Pro</h1>
+          <p class="page-sub">A professional-grade static code security analysis platform for developers and security engineers.</p>
+        </div>
+        <div class="about-grid">
+          <div class="about-card">
+            <div class="about-icon">🔍</div>
+            <h3>Pattern-Based Static Analysis</h3>
+            <p>Leverages 55 curated vulnerability patterns across 6 languages. Each rule is mapped to CWE IDs and OWASP Top 10 categories for standards compliance.</p>
+          </div>
+          <div class="about-card">
+            <div class="about-icon">🔒</div>
+            <h3>100% Client-Side & Private</h3>
+            <p>All analysis runs entirely in your browser using JavaScript. Your source code is never sent to any server. Your intellectual property stays yours.</p>
+          </div>
+          <div class="about-card">
+            <div class="about-icon">📋</div>
+            <h3>Exportable Reports</h3>
+            <p>Generate professional HTML security audit reports with a single click. Reports include all findings, severity scores, CWE references, and remediation steps.</p>
+          </div>
+          <div class="about-card">
+            <div class="about-icon">🌐</div>
+            <h3>Multi-Language Support</h3>
+            <p>Supports Python, JavaScript, Java, C/C++, PHP, and Go — covering the most widely-used languages in modern web, backend, and systems development.</p>
+          </div>
+          <div class="about-card">
+            <div class="about-icon">📊</div>
+            <h3>Security Scoring</h3>
+            <p>A weighted scoring algorithm computes an objective security score (0–100) based on finding severity, giving you a quick headline metric for code health.</p>
+          </div>
+          <div class="about-card">
+            <div class="about-icon">🛠️</div>
+            <h3>Actionable Remediation</h3>
+            <p>Every finding includes a plain-language description, impact assessment, concrete remediation steps, and both insecure and secure code examples.</p>
+          </div>
+        </div>
+        <div class="disclaimer-box">
+          <strong>⚠️ Disclaimer:</strong> SecureAudit Pro uses pattern-based static analysis which may produce false positives or miss complex vulnerabilities. It is intended to supplement — not replace — thorough manual code review, penetration testing, and purpose-built SAST/DAST tools.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────── TAB: DEPENDENCY CVE SCANNER ─────────────── -->
+    <div class="tab-pane" id="tab-dependencies" role="tabpanel">
+      <div class="content-page dep-page">
+        <div class="page-hero">
+          <h1 class="page-title">Dependency CVE Scanner</h1>
+          <p class="page-sub">Paste your dependency file to scan for known CVEs across Python, npm, and Go packages.</p>
+        </div>
+
+        <div class="dep-scanner-layout">
+          <!-- Input -->
+          <div class="dep-input-panel">
+            <div class="dep-file-tabs" id="depFileTabs">
+              <button class="dep-tab active" data-deptype="python" id="depTabPy">🐍 requirements.txt</button>
+              <button class="dep-tab" data-deptype="npm" id="depTabNpm">📦 package.json</button>
+              <button class="dep-tab" data-deptype="go" id="depTabGo">🔵 go.mod</button>
+            </div>
+            <div class="dep-editor-wrap">
+              <textarea id="depInput" class="dep-textarea" placeholder="Paste your requirements.txt, package.json, or go.mod here..."
+spellcheck="false"></textarea>
+            </div>
+            <div class="dep-input-footer">
+              <button class="btn-dep-sample" id="depSampleBtn">Load Sample File</button>
+              <button class="btn-dep-clear" id="depClearBtn">Clear</button>
+              <button class="btn-primary btn-dep-scan" id="depScanBtn">
+                <svg width="15" height="15" viewBox="0 0 20 20" fill="currentColor"><path d="M9 9a2 2 0 114 0 2 2 0 01-4 0z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a4 4 0 00-3.446 6.032l-2.261 2.26a1 1 0 101.414 1.415l2.261-2.261A4 4 0 1011 5z" clip-rule="evenodd"/></svg>
+                Scan Dependencies
+              </button>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div class="dep-results-panel" id="depResultsPanel">
+            <div class="dep-placeholder" id="depPlaceholder">
+              <div class="dep-placeholder-icon">📦</div>
+              <p>Paste a dependency file and click "Scan Dependencies"</p>
+              <p class="dep-sub">Detects known CVEs in 50+ common packages</p>
+            </div>
+            <div class="dep-stats-row" id="depStatsRow" style="display:none">
+              <div class="dep-stat dep-stat-total"  id="depStatTotal"><span class="dep-stat-n">0</span><span class="dep-stat-l">Packages</span></div>
+              <div class="dep-stat dep-stat-vuln"   id="depStatVuln"><span class="dep-stat-n">0</span><span class="dep-stat-l">Vulnerable</span></div>
+              <div class="dep-stat dep-stat-crit"   id="depStatCrit"><span class="dep-stat-n">0</span><span class="dep-stat-l">Critical</span></div>
+              <div class="dep-stat dep-stat-safe"   id="depStatSafe"><span class="dep-stat-n">0</span><span class="dep-stat-l">Safe</span></div>
+            </div>
+            <div class="dep-cve-list" id="depCveList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ═══════════════════════════ FIX CODE MODAL ═══════════════════════════ -->
+  <div class="fix-modal-overlay" id="fixModalOverlay" role="dialog" aria-modal="true" aria-label="Generated secure code">
+    <div class="fix-modal-box" id="fixModalBox">
+      <div class="fix-modal-header">
+        <div class="fix-modal-title-area">
+          <span class="fix-modal-badge">🤖 AI-Powered Fix</span>
+          <h2 class="fix-modal-title">Generated Secure Code</h2>
+        </div>
+        <div class="fix-modal-actions">
+          <button class="btn-copy-fix" id="copyFixBtn">📋 Copy Fixed Code</button>
+          <button class="fix-modal-close" id="fixModalClose" aria-label="Close">✕</button>
+        </div>
+      </div>
+      <div class="fix-stats-bar" id="fixStatsBar"></div>
+      <div class="fix-modal-body">
+        <div class="fix-layout">
+          <div class="fix-col">
+            <div class="fix-col-header fix-col-bad">❌ Original (Vulnerable)</div>
+            <div class="fix-code-area" id="fixOriginalCode"></div>
+          </div>
+          <div class="fix-col">
+            <div class="fix-col-header fix-col-good">✅ Fixed (Secure)</div>
+            <div class="fix-code-area" id="fixSecureCode"></div>
+          </div>
+        </div>
+        <div class="fix-changelog" id="fixChangelog"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ FINDING DETAIL MODAL ═══════════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box" id="modalBox">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <span class="modal-sev-badge" id="modalSevBadge"></span>
+          <h2 class="modal-title" id="modalTitle"></h2>
+        </div>
+        <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"><!-- Populated by JS --></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ SCAN PROGRESS OVERLAY ═══════════════════════════ -->
+  <div class="scan-overlay" id="scanOverlay" aria-hidden="true">
+    <div class="scan-box">
+      <div class="scan-radar">
+        <div class="radar-ring r1"></div>
+        <div class="radar-ring r2"></div>
+        <div class="radar-sweep"></div>
+        <div class="radar-center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+      </div>
+      <p class="scan-status-text" id="scanStatusText">Initializing scanner...</p>
+      <div class="scan-bar-wrap">
+        <div class="scan-bar-fill" id="scanBarFill"></div>
+      </div>
+      <div class="scan-steps-log" id="scanStepsLog"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SCRIPTS ═══════════════════════════════ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/php/php.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/go/go.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="secure-review.js"></script>
+  <script src="secure-review-features.js"></script>
+  <!-- Cyber HUD Interactive Engine -->
+  <script src="cyber-hud.js"></script>
+</body>
+</html>
