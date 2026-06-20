@@ -85,7 +85,7 @@ CodeAlpha-SecureAudit-Pro/
 
 `examples/student_portal.py` is a deliberately vulnerable Flask application — **12 intentional security flaws** — built specifically to validate detection accuracy. SecureAudit Pro identified every single one.
 
-The full generated report is available at [`reports/security-audit-report.html`](reports/security-audit-report.html), including:
+The full generated report is available at [`reports/security-audit-report.html`](https://github.com/mohamed-gaber0/CodeAlpha-SecureAudit-Pro/blob/5fc2470ec9ef19836977104aea8383d4c5c329f9/audit-target/security-audit-report.html), including:
 - Executive summary with an overall security score
 - Proof-of-concept for each finding
 - OWASP Top 10 coverage matrix
